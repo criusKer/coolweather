@@ -25,4 +25,12 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    //litepal：数据库操作
+    implementation 'org.litepal.android:java:3.0.0'
+    //okhttp：网络请求
+    implementation "com.squareup.okhttp3:okhttp:3.12.0"
+    //gson：解析JSON数据
+    implementation 'com.google.code.gson:gson:2.8.5'
+    //glide：加载展示图片
+    implementation 'com.github.bumptech.glide:glide:4.8.0'
 }
