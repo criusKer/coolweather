@@ -6,6 +6,9 @@ import android.util.Log;
 import com.criusker.coolweather.db.City;
 import com.criusker.coolweather.db.County;
 import com.criusker.coolweather.db.Province;
+import com.criusker.coolweather.gson.Air;
+import com.criusker.coolweather.gson.Weather;
+import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,7 +24,7 @@ public class Utility {
 
     /**
      * 解析和处理服务器返回的省级数据
-     * http://guolin.tech/apip/china
+     * http://guolin.tech/api/china
      * int id;
      * String provinceName;
      * int provinceCode;
@@ -49,7 +52,7 @@ public class Utility {
 
     /**
      * 解析和处理服务器返回的市级数据
-     * http://guolin.tech/apip/china/16
+     * http://guolin.tech/api/china/16
      * int id;
      * String cityName;
      * int cityCode;
@@ -78,7 +81,7 @@ public class Utility {
 
     /**
      * 解析和处理服务器返回的县级数据
-     * http://guolin.tech/apip/china/16/116
+     * http://guolin.tech/api/china/16/116
      * int id;
      * String countyName;
      * String weatherId;
@@ -105,5 +108,57 @@ public class Utility {
         return false;
     }
 
+    /**
+     * 将返回的JSON数据解析成Weather实体类
+     * {
+     * "HeWeather6": [
+     * {
+     *      "status": "ok",
+     *      "basic": {},
+     *      "update": {},
+     *      "now": {},
+     *      "daily_forecast": [{ }],
+     *      "lifestyle": [{}]
+     * }
+     * ]
+     * }
+     */
+    public static Weather handleWeatherResponse(String response){
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            JSONArray jsonArray = jsonObject.getJSONArray("HeWeather6");//HeWeather6数组
+            String weatherContent = jsonArray.getJSONObject(0).toString();//HeWeather6数组下标为0 返回JSON格式
+            return new Gson().fromJson(weatherContent,Weather.class);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * 将返回的JSON数据解析成Air实体类
+     * {
+     * "HeWeather6": [
+     * {
+     *      "basic": {},
+     *      "update": {},
+     *      "status": "ok",
+     *      "air_now_city": {},
+     *      "air_now_station": [{}]
+     * }
+     * ]
+     * }
+     */
+    public static Air handleAirResponse(String response){
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            JSONArray jsonArray = jsonObject.getJSONArray("HeWeather6");//HeWeather6数组
+            String airContent = jsonArray.getJSONObject(0).toString();//HeWeather6数组下标为0 返回JSON格式
+            return new Gson().fromJson(airContent,Air.class);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 }

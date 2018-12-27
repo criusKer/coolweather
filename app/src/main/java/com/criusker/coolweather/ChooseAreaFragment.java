@@ -1,6 +1,7 @@
 package com.criusker.coolweather;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -57,10 +58,9 @@ public class ChooseAreaFragment extends Fragment {
     private List<City> cityList;
     private List<County> countyList;
 
-    //选中的省市县
+    //选中的省市
     private Province selectedProvince;
     private City selectedCity;
-    private County selectedCounty;
 
     private List<String> dataList = new ArrayList<>();
 
@@ -96,6 +96,12 @@ public class ChooseAreaFragment extends Fragment {
                     selectedCity = cityList.get(position);
                     //查询选中市内的县
                     queryCounties();
+                }else if (currentLevel == LEVEL_COUNTY){
+                    String weatherId = countyList.get(position).getWeatherId();//获取weatherId
+                    Intent intent = new Intent(getActivity(),WeatherActivity.class);
+                    intent.putExtra("weather_id",weatherId);
+                    startActivity(intent);//点击县跳转到WeatherActivity并将weather_id传入
+                    getActivity().finish();
                 }
             }
         });
