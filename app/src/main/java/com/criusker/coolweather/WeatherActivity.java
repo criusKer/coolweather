@@ -4,11 +4,15 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -47,6 +51,12 @@ public class WeatherActivity extends AppCompatActivity {
     private TextView carWashText;
     private TextView sportText;
 
+    public SwipeRefreshLayout swpieRefresh;
+    private String mWeatherId;
+
+    public DrawerLayout drawerLayout;
+    private Button navButton;
+
 
 
     @Override
@@ -78,7 +88,9 @@ public class WeatherActivity extends AppCompatActivity {
         carWashText = findViewById(R.id.car_wash_text);
         sportText = findViewById(R.id.sport_text);
         bingPicImg = findViewById(R.id.bing_pic_img);
-
+        swpieRefresh = findViewById(R.id.swipe_refresh);
+        drawerLayout = findViewById(R.id.drawer_layout);
+        navButton = findViewById(R.id.nav_button);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         //天气
@@ -86,23 +98,25 @@ public class WeatherActivity extends AppCompatActivity {
         if(weatherString != null){
             //有缓存时直接解析天气数据
             Weather weather = Utility.handleWeatherResponse(weatherString);
+            mWeatherId = weather.basic.cid;
             showWeatherInfo(weather);
         }else {
             //无缓存时去服务器查询天气
-            String weatherId = getIntent().getStringExtra("weather_id");
+            mWeatherId = getIntent().getStringExtra("weather_id");
             weatherLayout.setVisibility(View.INVISIBLE);
-            requestWeather(weatherId);
+            requestWeather(mWeatherId);
         }
         //空气质量
         String airString = prefs.getString("air",null);
         if(airString != null){
             //有缓存时直接解析空气质量数据
             Air air = Utility.handleAirResponse(airString);
+            mWeatherId = air.basic.cid;
             showAirInfo(air);
         }else {
             //无缓存时去服务器查询天气
-            String weatherId = getIntent().getStringExtra("weather_id");
-            requestAir(weatherId);
+            mWeatherId = getIntent().getStringExtra("weather_id");
+            requestAir(mWeatherId);
         }
         //图片加载
         String bingPic = prefs.getString("bing_pic",null);
@@ -111,6 +125,22 @@ public class WeatherActivity extends AppCompatActivity {
         }else {
             loadBingPic();
         }
+        //下拉刷新
+        swpieRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                requestWeather(mWeatherId);
+                requestAir(mWeatherId);
+            }
+        });
+
+        //按钮监听打开滑动菜单
+        navButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
     }
     /**
      * 根据weather_id请求城市天气信息
@@ -127,6 +157,7 @@ public class WeatherActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
+                        swpieRefresh.setRefreshing(false);
                     }
                 });
             }
@@ -141,11 +172,13 @@ public class WeatherActivity extends AppCompatActivity {
                             SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
                             editor.putString("weather",responseText);
                             editor.apply();
+                            mWeatherId = weather.basic.cid;
                             showWeatherInfo(weather);
                             Log.d(TAG, "获取天气信息成功"+weather.status);
                         }else {
                             Toast.makeText(WeatherActivity.this,"获取天气信息失败",Toast.LENGTH_SHORT).show();
                         }
+                        swpieRefresh.setRefreshing(false);
                     }
                 });
             }
@@ -157,7 +190,7 @@ public class WeatherActivity extends AppCompatActivity {
      * 根据weather_id请求城市空气质量信息
      * url:https://free-api.heweather.net/s6/air?location=CN101190402&key=cf13198cf1774afd9510f0840922cb9c
      */
-    public void requestAir(String weatherId){
+    public void requestAir(final String weatherId){
         String airUrl = "https://free-api.heweather.net/s6/air?location="+weatherId+"&key=cf13198cf1774afd9510f0840922cb9c";
         HttpUtil.sendOKHttpRequest(airUrl, new Callback() {
             @Override
@@ -168,6 +201,7 @@ public class WeatherActivity extends AppCompatActivity {
                     public void run() {
                         Toast.makeText(WeatherActivity.this,"onFailure:获取空气质量信息失败",Toast.LENGTH_SHORT).show();
                         Log.d(TAG, "onFailure:获取空气质量信息失败");
+                        swpieRefresh.setRefreshing(false);
                     }
                 });
             }
@@ -182,12 +216,14 @@ public class WeatherActivity extends AppCompatActivity {
                             SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this).edit();
                             editor.putString("air",responseText);
                             editor.apply();
+                            mWeatherId = air.basic.cid;
                             showAirInfo(air);
                             Log.d(TAG, "获取空气质量信息成功");
                         }else {
                             Toast.makeText(WeatherActivity.this,"onResponse:获取空气质量信息失败",Toast.LENGTH_SHORT).show();
                             Log.d(TAG, "onResponse:获取空气质量信息失败"+air.status);
                         }
+                        swpieRefresh.setRefreshing(false);
                     }
                 });
             }
