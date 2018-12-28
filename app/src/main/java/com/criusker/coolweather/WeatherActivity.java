@@ -1,5 +1,6 @@
 package com.criusker.coolweather;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -23,6 +24,7 @@ import com.bumptech.glide.Glide;
 import com.criusker.coolweather.gson.Air;
 import com.criusker.coolweather.gson.Forecast;
 import com.criusker.coolweather.gson.Weather;
+import com.criusker.coolweather.service.AutoUpdateService;
 import com.criusker.coolweather.util.HttpUtil;
 import com.criusker.coolweather.util.Utility;
 
@@ -266,6 +268,9 @@ public class WeatherActivity extends AppCompatActivity {
         sportText.setText(sport);
 
         weatherLayout.setVisibility(View.VISIBLE);
+
+        Intent intent = new Intent(WeatherActivity.this, AutoUpdateService.class);
+        startService(intent);
     }
 
     /**
